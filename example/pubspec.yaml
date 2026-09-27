@@ -1,5 +1,5 @@
-name: swing_page_transition_example
-description: Demo app for the swing_page_transition package.
+name: transition_lab_example
+description: Demo app for the transition_lab package.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  swing_page_transition:
+  transition_lab:
     path: ../
 
 dev_dependencies:

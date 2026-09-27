@@ -1,9 +1,10 @@
 import 'dart:math' as math;
 
-import 'package:flutter/cupertino.dart'
-    show CupertinoPageRoute, CupertinoRouteTransitionMixin;
+import 'package:flutter/cupertino.dart' show CupertinoPageRoute;
 // PageTransitionsBuilder lives here before Flutter 3.38.
 import 'package:flutter/material.dart';
+
+import 'gestures.dart';
 
 /// A [PageTransitionsBuilder] in which the incoming page swings in from the
 /// side in 3D — rotating around the vertical axis and zooming down to size,
@@ -148,17 +149,7 @@ class SwingPageTransitionsBuilder extends PageTransitionsBuilder {
         spec: this,
         animation: animation,
         linear: linear,
-        child: swipeBackEnabled
-            // Reuses Cupertino's edge swipe detector. Its own slide is
-            // neutralized by handing it animations that never move.
-            ? CupertinoRouteTransitionMixin.buildPageTransitions<T>(
-                route,
-                context,
-                kAlwaysCompleteAnimation,
-                kAlwaysDismissedAnimation,
-                child,
-              )
-            : child,
+        child: swipeBackEnabled ? edgeSwipeBack(route, context, child) : child,
       ),
     );
   }
@@ -202,10 +193,6 @@ class SwingPageTransitionsBuilder extends PageTransitionsBuilder {
       );
 }
 
-// +1 moves towards the trailing edge (right in LTR), -1 in RTL.
-double _trailing(BuildContext context) =>
-    Directionality.maybeOf(context) == TextDirection.rtl ? -1 : 1;
-
 /// The page being pushed or popped (React Navigation's `current.progress`).
 class _EnterTransition extends AnimatedWidget {
   const _EnterTransition({
@@ -224,7 +211,7 @@ class _EnterTransition extends AnimatedWidget {
     // 1 while off screen, 0 once the page has landed.
     final double t =
         1 - spec._progress(listenable as Animation<double>, linear);
-    final double direction = _trailing(context);
+    final double direction = trailingSign(context);
     final double scale = 1 + (spec.enterScale - 1) * t;
 
     return Opacity(
@@ -280,7 +267,7 @@ class _CoveredTransition extends AnimatedWidget {
       child: Transform(
         alignment: Alignment.center,
         transform: Matrix4.translationValues(
-          _trailing(context) *
+          trailingSign(context) *
               spec.coveredOffset *
               MediaQuery.sizeOf(context).width *
               q,

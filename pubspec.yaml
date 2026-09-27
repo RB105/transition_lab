@@ -1,9 +1,9 @@
-name: swing_page_transition
+name: transition_lab
 description: >-
-  A 3D swing page transition: the new page rotates in like a book page while
-  the one below slides back, shrinks and dims. Drop-in PageTransitionsBuilder.
-version: 0.1.0
-repository: https://github.com/RB105/swing_page_transition
+  Page transitions re-created from well-known apps: the Wolt swing, iOS zoom
+  and sheet, Instagram cube, photo drag to dismiss, page curl, doors, mini-player.
+version: 0.2.0
+repository: https://github.com/RB105/transition_lab
 topics:
   - animation
   - transition
@@ -27,3 +27,9 @@ dev_dependencies:
 screenshots:
   - description: A venue page swings in over a list, then swings back out.
     path: doc/demo.gif
+  - description: The iOS 18 zoom, pulled down to shrink back into its card.
+    path: doc/gifs/zoom.gif
+  - description: An Apple Books page curl, turned back by its corner.
+    path: doc/gifs/page_curl.gif
+  - description: The page underneath opens like a pair of doors.
+    path: doc/gifs/door.gif

@@ -1,4 +1,4 @@
-# swing_page_transition example
+# transition_lab example
 
 A small food-delivery style app that uses `SwingPageTransitionsBuilder` for
 every route. Tap a venue to see the transition, swipe from the left edge to go

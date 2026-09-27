@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:swing_page_transition/swing_page_transition.dart';
+import 'package:transition_lab/transition_lab.dart';
 
 const _homeKey = ValueKey('home');
 const _pageKey = ValueKey('page');
