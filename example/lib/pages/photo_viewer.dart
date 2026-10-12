@@ -22,9 +22,16 @@ class Photo extends StatelessWidget {
 
 /// A full-screen photo viewer, shown in a DragDismissPageRoute.
 class PhotoViewer extends StatefulWidget {
-  const PhotoViewer({super.key, required this.initialIndex});
+  const PhotoViewer({
+    super.key,
+    required this.initialIndex,
+    this.hint = 'Swipe sideways for more photos\nDrag up or down to close',
+  });
 
   final int initialIndex;
+
+  /// What to tell the user about closing this viewer.
+  final String hint;
 
   @override
   State<PhotoViewer> createState() => _PhotoViewerState();
@@ -79,15 +86,14 @@ class _PhotoViewerState extends State<PhotoViewer> {
               ],
             ),
           ),
-          const Positioned(
+          Positioned(
             left: 0,
             right: 0,
             bottom: 40,
             child: Text(
-              'Swipe sideways for more photos\n'
-              'Drag up or down to close',
+              widget.hint,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white70),
+              style: const TextStyle(color: Colors.white70),
             ),
           ),
         ],

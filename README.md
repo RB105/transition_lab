@@ -10,13 +10,18 @@ drop-in route, keeps a back gesture that follows the finger, respects
 | **[Drag to dismiss](#drag-to-dismiss)**<br>`DragDismissPageRoute`<br>Instagram, Telegram<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/drag_dismiss.gif" width="220" alt="Drag to dismiss transition"> | **[Cube](#cube)**<br>`CubePageRoute`<br>Instagram Stories<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/cube.gif" width="220" alt="Cube transition"> | **[Flip](#flip)**<br>`FlipPageRoute`<br>A card turning over<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/flip.gif" width="220" alt="Flip transition"> |
 | **[Depth blur](#depth-blur)**<br>`DepthPageRoute`<br>iOS app launch, visionOS<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/depth.gif" width="220" alt="Depth blur transition"> | **[Door](#door)**<br>`DoorPageRoute`<br>A doorway<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/door.gif" width="220" alt="Door transition"> | **[Page curl](#page-curl)**<br>`PageCurlRoute`<br>Apple Books<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/page_curl.gif" width="220" alt="Page curl transition"> |
 | **[Circular reveal](#circular-reveal)**<br>`CircularRevealRoute`<br>Android, Telegram<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/circular_reveal.gif" width="220" alt="Circular reveal transition"> | **[Full-screen swipe back](#full-screen-swipe-back)**<br>`FullSwipePageRoute`<br>Telegram<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/full_swipe.gif" width="220" alt="Full-screen swipe back transition"> | **[Mini-player](#mini-player)**<br>`MiniPlayer`<br>YouTube, Spotify<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/mini_player.gif" width="220" alt="Mini-player transition"> |
+| **[Container transform](#container-transform)**<br>`ContainerTransformRoute`<br>Material 3 · Gmail, Play Store<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/container_transform.gif" width="220" alt="Container transform transition"> | **[Shared axis](#shared-axis)**<br>`SharedAxisPageRoute`<br>Material 3<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/shared_axis.gif" width="220" alt="Shared axis transition"> | **[Fade through](#fade-through)**<br>`FadeThroughPageRoute`<br>Material 3<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/fade_through.gif" width="220" alt="Fade through transition"> |
+| **[Pinch to dismiss](#pinch-to-dismiss)**<br>`PinchDismissPageRoute`<br>Apple Photos, Google Photos<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/pinch_dismiss.gif" width="220" alt="Pinch to dismiss transition"> | **[Fold](#fold)**<br>`FoldPageRoute`<br>Flipboard<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/fold.gif" width="220" alt="Fold transition"> | **[Card stack](#card-stack)**<br>`CardStackRoute`<br>Tinder, Safari tabs<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/card_stack.gif" width="220" alt="Card stack transition"> |
+| **[Top sheet](#top-sheet)**<br>`TopSheetRoute`<br>iOS Control Center<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/top_sheet.gif" width="220" alt="Top sheet transition"> | **[Drawer](#drawer)**<br>`DrawerPageRoute`<br>Messenger, Telegram<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/drawer.gif" width="220" alt="Drawer transition"> | **[Wipe](#wipe)**<br>`WipePageRoute`<br>Four shapes, one route<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/wipe.gif" width="220" alt="Wipe transition"> |
+| **[Glass reveal](#glass-reveal)**<br>`GlassRevealRoute`<br>iOS 26 Liquid Glass<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/glass_reveal.gif" width="220" alt="Glass reveal transition"> | **[Turnstile](#turnstile)**<br>`TurnstileRoute`<br>Windows Phone · Metro<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/turnstile.gif" width="220" alt="Turnstile transition"> | **[Dynamic Island](#dynamic-island)**<br>`IslandPageRoute`<br>iOS<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/island.gif" width="220" alt="Dynamic Island transition"> |
+| **[Wallet](#wallet)**<br>`WalletPageRoute`<br>Apple Wallet<br><img src="https://raw.githubusercontent.com/RB105/transition_lab/main/doc/gifs/wallet.gif" width="220" alt="Wallet transition"> |  |  |
 
 The [example app](example/lib/main.dart) shows every one of them. Turn on
 its slow motion switch to watch them closely.
 
 ```yaml
 dependencies:
-  transition_lab: ^0.2.0
+  transition_lab: ^0.3.0
 ```
 
 This package was called `swing_page_transition` up to 0.1.0.
@@ -289,6 +294,235 @@ tells pages how much room to leave for the bar.
 The player lives outside the app's navigator, in an overlay of its own, so
 `Navigator.of` does not reach the app's navigator from inside it.
 
+## Container transform
+
+Material 3's container transform: the card the page was opened from grows
+into the page, its corners rounding out, while its own look cross-fades into
+the page's. Where `ZoomPageRoute` scales the whole page down into the card,
+so its text grows with it, a container transform leaves the page at full size
+and lets the growing card uncover it.
+
+```dart
+GestureDetector(
+  onTap: () => Navigator.of(context).push(
+    ContainerTransformRoute(tag: mail, builder: (_) => MailPage(mail: mail)),
+  ),
+  child: ZoomSource(tag: mail, borderRadius: 16, child: MailCard(mail)),
+)
+```
+
+Pulling the page down while its content is scrolled to the top shrinks it
+around the finger and closes it, as the zoom does. Without a matching
+`ZoomSource` the page grows out of the middle of the screen.
+
+## Shared axis
+
+Material 3's shared axis: the two pages move together along one axis while
+they cross-fade, so they read as neighbours on that axis. The outgoing page
+fades out over the first 30% and the incoming one fades in over the rest, so
+they never show through each other.
+
+```dart
+Navigator.of(context).push(
+  SharedAxisPageRoute(
+    axis: SharedAxis.horizontal,
+    builder: (_) => const StepTwoPage(),
+  ),
+);
+```
+
+`SharedAxis.horizontal` and `SharedAxis.vertical` slide by `distance`;
+`SharedAxis.scaled` moves into the screen instead. For every route at once,
+put a `SharedAxisPageTransitionsBuilder` in the theme's
+`pageTransitionsTheme`.
+
+## Fade through
+
+Material 3's fade through, as between the destinations of a navigation bar:
+the outgoing page fades out, and the new one fades in while it grows from
+`enterScale` to full size. Use it between pages that are not steps along an
+axis.
+
+```dart
+Navigator.of(context).push(
+  FadeThroughPageRoute(builder: (_) => const LibraryPage()),
+);
+```
+
+`FadeThroughPageTransitionsBuilder` applies it to every route through the
+theme.
+
+## Pinch to dismiss
+
+The photo viewer of Apple Photos and Google Photos: two fingers pinching the
+page together shrink it around the point between them, and letting go while
+it is small closes it back into its thumbnail.
+
+```dart
+GestureDetector(
+  onTap: () => Navigator.of(context).push(
+    PinchDismissPageRoute(tag: photo, builder: (_) => PhotoViewer(photo)),
+  ),
+  child: ZoomSource(tag: photo, child: Thumbnail(photo)),
+)
+```
+
+Only two fingers close the page, so one finger is left to the content: a
+`PageView` of photos still swipes and scrollables still scroll. For a viewer
+closed with one finger, use `DragDismissPageRoute`.
+
+## Fold
+
+Flipboard's fold: the page arrives folded in half along a crease across its
+middle and opens flat, while the page underneath sinks back and dims.
+
+```dart
+Navigator.of(context).push(
+  FoldPageRoute(builder: (_) => ArticlePage(article: article)),
+);
+```
+
+The folding page is drawn from a snapshot taken as the transition starts, so
+it does not rebuild while it folds. The page is popped with the edge swipe,
+which folds it shut again.
+
+## Card stack
+
+A card dealt onto a stack, as in Tinder or the iOS Safari tab switcher: the
+page flies in from the trailing edge with a tilt and settles flat, while the
+page underneath sits back as the next card.
+
+```dart
+Navigator.of(context).push(
+  CardStackRoute(builder: (_) => ProfileCard(profile: profile)),
+);
+```
+
+Dragging the card towards the trailing edge from anywhere throws it away,
+which pops the route. Inner horizontal scrollables still win their own drags.
+
+## Top sheet
+
+A sheet coming down from the top, as iOS Control Center and the Android
+notification shade do: the page slides down as a card with rounded bottom
+corners, while the page underneath shrinks back, dims and peeks out below it.
+
+```dart
+Navigator.of(context).push(
+  TopSheetRoute(builder: (_) => const ControlsPage()),
+);
+```
+
+Pushing the sheet up from anywhere while its content is scrolled to the
+bottom drags it with the finger. Top sheets stack the way `SheetPageRoute`
+does.
+
+## Drawer
+
+A side menu, as in Messenger and Telegram: the page slides in from the
+leading edge over `widthFactor` of the screen, while the page underneath
+slides a little the other way, shrinks and is dimmed by the scrim.
+
+```dart
+Navigator.of(context).push(
+  DrawerPageRoute(
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    builder: (_) => const MenuPage(),
+  ),
+);
+```
+
+Dragging the panel towards the leading edge closes it, as does a tap on the
+scrim beside it.
+
+## Wipe
+
+One route, four masks: `WipeStyle.shutter` opens slats together like a blind,
+`WipeStyle.diagonal` sweeps a straight edge from the leading top corner,
+`WipeStyle.clock` sweeps around the middle and `WipeStyle.iris` opens a
+circle there.
+
+```dart
+Navigator.of(context).push(
+  WipePageRoute(
+    style: WipeStyle.shutter,
+    builder: (_) => const EpisodePage(),
+  ),
+);
+```
+
+The diagonal and the clock start from the leading edge, so they mirror in a
+right-to-left directionality.
+
+## Glass reveal
+
+The glass ripple of iOS 26: the page is uncovered by a circle growing from
+where the user tapped, with a band of blurred, lit glass riding its edge.
+Track the taps the way `CircularRevealRoute` does:
+
+```dart
+MaterialApp(
+  builder: (context, child) => TapPosition.tracker(child: child!),
+  // ...
+);
+
+Navigator.of(context).push(
+  GlassRevealRoute(builder: (_) => const SearchPage()),
+);
+```
+
+The band blurs everything behind it every frame, which is costly on low-end
+devices; lower `blurSigma`, or set it to 0 to keep only the lit rim.
+
+## Turnstile
+
+The turnstile of Windows Phone's Metro: the page underneath pivots away
+around its leading edge like a revolving door, and the new one pivots into
+its place.
+
+```dart
+Navigator.of(context).push(
+  TurnstileRoute(builder: (_) => const PivotPage()),
+);
+```
+
+`angle` sets how far they turn and `perspective` how strong the 3D is, as in
+CSS `perspective()`.
+
+## Dynamic Island
+
+A page growing out of the Dynamic Island: the pill at the top of the screen
+stretches out into the page, while the screen behind it blurs away under the
+backdrop.
+
+```dart
+Navigator.of(context).push(
+  IslandPageRoute(builder: (_) => TimerPage(timer: timer)),
+);
+```
+
+`pillSize` and `pillTop` place the pill; the defaults match the Dynamic
+Island. With a `tag` the page grows out of the `ZoomSource` with that tag
+instead, so any pill-shaped widget can be its source. Pulling the page down
+puts it back.
+
+## Wallet
+
+Apple Wallet: the pass that was tapped rises out of the stack and opens into
+a full page, while the stack it came from drops away and dims.
+
+```dart
+GestureDetector(
+  onTap: () => Navigator.of(context).push(
+    WalletPageRoute(tag: pass, builder: (_) => PassPage(pass: pass)),
+  ),
+  child: ZoomSource(tag: pass, borderRadius: 14, child: PassCard(pass)),
+)
+```
+
+Pulling the page down drops it back onto the stack.
+
+
 ## Notes
 
 - Requires Flutter 3.27 or newer. On Flutter 3.27 and 3.28, `MaterialPageRoute`
@@ -296,8 +530,10 @@ The player lives outside the app's navigator, in an overlay of its own, so
 - During a back swipe both pages follow the finger linearly with the same
   geometry, so the swinging page moves faster than the finger, as in the
   original.
-- `ZoomPageRoute`, `DragDismissPageRoute` and `CircularRevealRoute` assume
-  their navigator fills the screen, as the app's root navigator does.
+- `ZoomPageRoute`, `DragDismissPageRoute`, `ContainerTransformRoute`,
+  `PinchDismissPageRoute`, `IslandPageRoute`, `WalletPageRoute`,
+  `CircularRevealRoute` and `GlassRevealRoute` assume their navigator fills
+  the screen, as the app's root navigator does.
 - `DoorPageRoute` and `PageCurlRoute` draw from a snapshot of the page taken
   as the transition starts, so that page does not animate meanwhile. Pages
   with platform views are not snapshotted and simply stay in place.

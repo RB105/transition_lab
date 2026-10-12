@@ -5,7 +5,11 @@ import 'package:flutter/material.dart';
 
 import 'gestures.dart';
 
+part 'container_transform_route.dart';
 part 'drag_dismiss_page_route.dart';
+part 'island_page_route.dart';
+part 'pinch_dismiss_page_route.dart';
+part 'wallet_page_route.dart';
 
 /// Marks the widget a [ZoomPageRoute] or [DragDismissPageRoute] with the same
 /// tag grows out of and shrinks back into.
@@ -144,6 +148,8 @@ class _ZoomStyle {
     required this.freeDrag,
     required this.anchor,
     required this.fillsWhileFading,
+    this.scalesPage = true,
+    this.pinch = false,
   });
 
   /// Painted behind the open page. It fades in with the page, and out as the
@@ -174,6 +180,15 @@ class _ZoomStyle {
   /// Whether the window is filled with the scaffold background while the
   /// page fades in over its source.
   final bool fillsWhileFading;
+
+  /// Whether the page is scaled down into the window, as the zoom does, or
+  /// laid out at full size and uncovered by it, as a container transform
+  /// does.
+  final bool scalesPage;
+
+  /// Whether a two-finger pinch closes the page instead of a one-finger
+  /// pull.
+  final bool pinch;
 }
 
 /// A route whose page grows out of a [ZoomSource] and closes with a pull.
@@ -196,6 +211,12 @@ abstract class _SourcePageRoute<T> extends PageRoute<T> {
 
   Object? get _tag;
   _ZoomStyle get _style;
+
+  /// Where the page grows from when no [ZoomSource] matches [_tag], or null
+  /// to grow out of the middle of the screen.
+  ({Rect rect, double radius})? _sourceFallback(
+          Size size, EdgeInsets padding) =>
+      null;
 
   _ZoomSourceState? _source;
   Rect? _sourceRect;
@@ -305,7 +326,9 @@ class _ZoomTransitionState extends State<_ZoomTransition>
   late final AnimationController _settle;
 
   Offset _drag = Offset.zero; // how far the page has been pulled
+  double _pinch = 1; // how far two fingers have pinched it together
   Offset _settleFrom = Offset.zero;
+  double _settleFromPinch = 1;
   Offset _anchor = Offset.zero; // the point of the page under the finger
   Rect? _releasedAt; // where the page was let go when a pull closes it
   double _releasedRadius = 0;
@@ -349,23 +372,25 @@ class _ZoomTransitionState extends State<_ZoomTransition>
 
   void _onSettle() {
     setState(() {
-      _drag = Offset.lerp(
-        _settleFrom,
-        Offset.zero,
-        Curves.easeOutCubic.transform(_settle.value),
-      )!;
+      final double t = Curves.easeOutCubic.transform(_settle.value);
+      _drag = Offset.lerp(_settleFrom, Offset.zero, t)!;
+      _pinch = lerpDouble(_settleFromPinch, 1, t)!;
     });
   }
 
   double _pull(Size size) {
+    // A pinch is measured by how far the fingers came together instead.
+    if (_style.pinch) return ((1 - _pinch) / 0.5).clamp(0.0, 1.0);
     final double distance =
         _style.freeDrag ? _drag.distance : math.max(_drag.dy, 0);
     return (distance / (size.height * 0.5)).clamp(0.0, 1.0);
   }
 
-  // The page shrinks around the finger as it is pulled.
+  // The page shrinks around the finger as it is pulled, or around the point
+  // between two fingers as they pinch.
   Rect _draggedRect(Size size) {
-    final double scale = 1 - _style.shrink * _pull(size);
+    final double scale =
+        _style.pinch ? _pinch : 1 - _style.shrink * _pull(size);
     return Rect.fromLTWH(
       _anchor.dx * (1 - scale) + _drag.dx,
       _anchor.dy * (1 - scale) + _drag.dy,
@@ -374,8 +399,9 @@ class _ZoomTransitionState extends State<_ZoomTransition>
     );
   }
 
-  double get _draggedRadius =>
-      math.min(_drag.distance * 0.5, _style.dragRadius);
+  double get _draggedRadius => _style.pinch
+      ? _style.dragRadius * _pull(MediaQuery.sizeOf(context))
+      : math.min(_drag.distance * 0.5, _style.dragRadius);
 
   bool _shouldStart(Offset moved, bool atTop, bool atBottom) {
     if (_settle.isAnimating || !widget.route.popGestureEnabled) return false;
@@ -386,17 +412,47 @@ class _ZoomTransitionState extends State<_ZoomTransition>
 
   void _onPullUpdate(Offset moved) => setState(() => _drag = moved);
 
-  void _onPullEnd(Offset? velocity) {
-    if (velocity == null || !_closes(velocity)) {
-      _settleFrom = _drag;
-      _settle.forward(from: 0);
+  bool _shouldStartPinch() =>
+      !_settle.isAnimating && widget.route.popGestureEnabled;
+
+  void _onPinchUpdate(double scale, Offset moved) => setState(() {
+        _pinch = scale.clamp(0.2, 1.0);
+        _drag = moved;
+      });
+
+  // Pinched to less than this, the page closes when the fingers lift.
+  static const double _kPinchCloses = 0.85;
+
+  void _onPinchEnd(double? scale) {
+    if (scale == null || scale >= _kPinchCloses) {
+      _settleBack();
       return;
     }
+    _release();
+  }
+
+  void _settleBack() {
+    _settleFrom = _drag;
+    _settleFromPinch = _pinch;
+    _settle.forward(from: 0);
+  }
+
+  void _onPullEnd(Offset? velocity) {
+    if (velocity == null || !_closes(velocity)) {
+      _settleBack();
+      return;
+    }
+    _release(velocity: velocity);
+  }
+
+  void _release({Offset? velocity}) {
     final Size size = MediaQuery.sizeOf(context);
     setState(() {
       _releasedAt = _draggedRect(size);
       _releasedRadius = _draggedRadius;
-      if (_style.freeDrag && widget.route._sourceRect == null) {
+      if (velocity != null &&
+          _style.freeDrag &&
+          widget.route._sourceRect == null) {
         final Offset fling = velocity.distance > 700 ? velocity : _drag;
         _thrownTo = _releasedAt!.shift(
           fling / fling.distance * size.longestSide,
@@ -428,19 +484,41 @@ class _ZoomTransitionState extends State<_ZoomTransition>
   Rect _anchored(Size size, Size window) =>
       _style.anchor.inscribe(size, Offset.zero & window);
 
+  // The zoom scales the whole page down into the window; a container
+  // transform leaves it at full size and lets the window uncover it.
+  Widget _scaledIntoWindow({
+    required Rect window,
+    required Size size,
+    required Widget child,
+  }) {
+    if (!_style.scalesPage) return child;
+    return Transform.scale(
+      scale: window.width / size.width,
+      alignment: _style.anchor,
+      child: child,
+    );
+  }
+
   Widget _buildFrame(BuildContext context) {
     final Size size = MediaQuery.sizeOf(context);
     final _SourcePageRoute<dynamic> route = widget.route;
     final double p = _progress.value;
+    final ({Rect rect, double radius})? fallback =
+        route._sourceRect == null && _thrownTo == null
+            ? route._sourceFallback(size, MediaQuery.paddingOf(context))
+            : null;
     final Rect source = route._sourceRect ??
         _thrownTo ??
+        fallback?.rect ??
         Rect.fromCenter(
           center: size.center(Offset.zero),
           width: size.width * _style.fallbackScale,
           height: size.height * _style.fallbackScale,
         );
     final double sourceRadius = route._sourceRadius ??
-        (_thrownTo != null ? _releasedRadius : _style.fallbackRadius);
+        (_thrownTo != null
+            ? _releasedRadius
+            : fallback?.radius ?? _style.fallbackRadius);
     final Rect expanded = _releasedAt ?? _draggedRect(size);
     final double expandedRadius =
         _releasedAt != null ? _releasedRadius : _draggedRadius;
@@ -498,21 +576,30 @@ class _ZoomTransitionState extends State<_ZoomTransition>
                       ),
                     ),
                   ),
-                // The page keeps its full-screen layout and is scaled to fit.
+                // The page keeps its full-screen layout, and is either
+                // scaled into the window or uncovered by it.
                 Positioned.fromRect(
                   rect: _anchored(size, window.size),
-                  child: Transform.scale(
-                    scale: window.width / size.width,
-                    alignment: _style.anchor,
+                  child: _scaledIntoWindow(
+                    window: window,
+                    size: size,
                     child: Opacity(
                       opacity: pageOpacity,
-                      child: PullDetector(
-                        shouldStart: _shouldStart,
-                        onStart: (downAt) => _anchor = downAt,
-                        onUpdate: _onPullUpdate,
-                        onEnd: _onPullEnd,
-                        child: widget.child,
-                      ),
+                      child: _style.pinch
+                          ? PinchDetector(
+                              shouldStart: _shouldStartPinch,
+                              onStart: (focal) => _anchor = focal,
+                              onUpdate: _onPinchUpdate,
+                              onEnd: _onPinchEnd,
+                              child: widget.child,
+                            )
+                          : PullDetector(
+                              shouldStart: _shouldStart,
+                              onStart: (downAt) => _anchor = downAt,
+                              onUpdate: _onPullUpdate,
+                              onEnd: _onPullEnd,
+                              child: widget.child,
+                            ),
                     ),
                   ),
                 ),

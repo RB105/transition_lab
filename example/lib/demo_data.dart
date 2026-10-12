@@ -240,3 +240,119 @@ const tracks = [
   Track('Blue Domes', 'Registan Choir', [Color(0xFF00B4DB), Color(0xFF0083B0)],
       Icons.graphic_eq),
 ];
+
+class Mail {
+  const Mail(this.sender, this.subject, this.preview, this.time, this.color);
+
+  final String sender;
+  final String subject;
+  final String preview;
+  final String time;
+  final Color color;
+}
+
+const mails = [
+  Mail(
+    'Silk Road Airlines',
+    'Your boarding pass',
+    'Check in is open for TAS - IST on Friday.',
+    '08:12',
+    Color(0xFF0B3D91),
+  ),
+  Mail(
+    'Nilufar Karimova',
+    'Re: Samarkand photos',
+    'These came out great. Can you send the raw files?',
+    '09:40',
+    Color(0xFF8E24AA),
+  ),
+  Mail(
+    'Registan Hotel',
+    'Booking confirmed',
+    'Room 204, two nights, breakfast included.',
+    '11:05',
+    Color(0xFF00897B),
+  ),
+];
+
+class Profile {
+  const Profile(this.name, this.age, this.bio, this.color, this.icon);
+
+  final String name;
+  final int age;
+  final String bio;
+  final Color color;
+  final IconData icon;
+}
+
+const profiles = [
+  Profile('Dilnoza', 27, 'Ceramics, long walks, bad puns.', Color(0xFFE91E63),
+      Icons.palette),
+  Profile('Sardor', 31, 'Mountains on weekends, code on weekdays.',
+      Color(0xFF3949AB), Icons.terrain),
+  Profile('Kamila', 24, 'Tea, film cameras, old maps.', Color(0xFF00897B),
+      Icons.camera_alt),
+];
+
+class Pass {
+  const Pass(this.from, this.to, this.code, this.gate, this.color);
+
+  final String from;
+  final String to;
+  final String code;
+  final String gate;
+  final Color color;
+}
+
+const passes = [
+  Pass('Tashkent', 'Istanbul', 'TK 369', 'B12', Color(0xFF0B3D91)),
+  Pass('Istanbul', 'Lisbon', 'TK 1047', 'A7', Color(0xFF8E24AA)),
+  Pass('Lisbon', 'Tashkent', 'TK 1048', 'C3', Color(0xFF00695C)),
+];
+
+class LibrarySection {
+  const LibrarySection(this.name, this.detail, this.color, this.icon);
+
+  final String name;
+  final String detail;
+  final Color color;
+  final IconData icon;
+}
+
+const librarySections = [
+  LibrarySection('Listen now', '12 new tracks', Color(0xFFD81B60), Icons.radio),
+  LibrarySection(
+      'Library', '340 songs', Color(0xFF1E88E5), Icons.library_music),
+  LibrarySection('Search', 'Everything else', Color(0xFF43A047), Icons.search),
+];
+
+// The three steps of a checkout, shown with the shared axis transition.
+const checkoutSteps = [
+  ('Cart', 'Two items, 420 000 so\'m'),
+  ('Delivery', 'Amir Temur 15, Tashkent'),
+  ('Payment', 'Card ending 4417'),
+];
+
+const articleTitle = 'The road that folded the map';
+
+const articleBody =
+    'Every caravan city on the route kept its own account of the road, and '
+    'none of them agreed. Samarkand measured it in days to the next well, '
+    'Bukhara in the price of silk, Merv in the number of gates a traveller '
+    'had to pass before dark.\n\n'
+    'Put the accounts side by side and the road folds in on itself: the same '
+    'stretch of dust is three days long, a week long, and no distance at all, '
+    'depending on who is doing the counting and what they are carrying.';
+
+class Pivot {
+  const Pivot(this.title, this.detail, this.color);
+
+  final String title;
+  final String detail;
+  final Color color;
+}
+
+const pivots = [
+  Pivot('people', '14 online', Color(0xFF00838F)),
+  Pivot('photos', '2 albums', Color(0xFF6A1B9A)),
+];

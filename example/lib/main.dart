@@ -4,15 +4,27 @@ import 'package:transition_lab/transition_lab.dart';
 
 import 'demo_data.dart';
 import 'pages/app_page.dart';
+import 'pages/article_page.dart';
 import 'pages/boarding_pass.dart';
 import 'pages/book_page.dart';
 import 'pages/chat_page.dart';
+import 'pages/checkout_page.dart';
+import 'pages/controls_page.dart';
 import 'pages/destination_page.dart';
+import 'pages/episode_page.dart';
+import 'pages/library_page.dart';
+import 'pages/mail_page.dart';
+import 'pages/menu_page.dart';
+import 'pages/pass_page.dart';
+import 'pages/pivot_page.dart';
+import 'pages/profile_page.dart';
 import 'pages/photo_viewer.dart';
 import 'pages/place_sheet.dart';
 import 'pages/player.dart';
 import 'pages/room_page.dart';
+import 'pages/search_page.dart';
 import 'pages/shortcut_page.dart';
+import 'pages/timer_page.dart';
 import 'pages/story_page.dart';
 import 'pages/venue_page.dart';
 
@@ -369,6 +381,272 @@ class _DemoHomePageState extends State<DemoHomePage> {
               subtitle: Text(track.artist),
               trailing: const Icon(Icons.play_arrow),
               onTap: () => _play(track),
+            ),
+          const SectionHeader(
+            number: 13,
+            title: 'Container transform',
+            source: 'Material 3 · Gmail, Play Store',
+            hint: 'Tap a mail: its card grows into the page without scaling '
+                'the text. Pull the page down to put it back.',
+          ),
+          for (final mail in mails)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: GestureDetector(
+                onTap: () => navigator.push(
+                  ContainerTransformRoute<void>(
+                    tag: mail,
+                    builder: (_) => MailPage(mail: mail),
+                  ),
+                ),
+                child: ZoomSource(
+                  tag: mail,
+                  borderRadius: 16,
+                  child: MailCard(mail: mail),
+                ),
+              ),
+            ),
+          const SectionHeader(
+            number: 14,
+            title: 'Shared axis',
+            source: 'Material 3',
+            hint: 'Walk through the steps: the two pages travel sideways '
+                'together and cross-fade.',
+          ),
+          FilledButton(
+            onPressed: () => navigator.push(
+              SharedAxisPageRoute<void>(
+                builder: (_) => const CheckoutPage(step: 0),
+              ),
+            ),
+            child: const Text('Start checkout'),
+          ),
+          const SectionHeader(
+            number: 15,
+            title: 'Fade through',
+            source: 'Material 3',
+            hint: 'Tap a destination: one page fades out, the next fades in '
+                'while it grows to size.',
+          ),
+          for (final section in librarySections)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: CircleAvatar(
+                backgroundColor: section.color,
+                child: Icon(section.icon, color: Colors.white),
+              ),
+              title: Text(
+                section.name,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              subtitle: Text(section.detail),
+              onTap: () => navigator.push(
+                FadeThroughPageRoute<void>(
+                  builder: (_) => LibraryPage(section: section),
+                ),
+              ),
+            ),
+          const SectionHeader(
+            number: 16,
+            title: 'Pinch to dismiss',
+            source: 'Apple Photos, Google Photos',
+            hint: 'Tap a photo, then pinch it closed with two fingers. One '
+                'finger still swipes between photos.',
+          ),
+          GridView.count(
+            crossAxisCount: 3,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 4,
+            crossAxisSpacing: 4,
+            children: [
+              for (var i = 0; i < photoIcons.length; i++)
+                GestureDetector(
+                  onTap: () => navigator.push(
+                    PinchDismissPageRoute<void>(
+                      tag: 'pinch \$i',
+                      builder: (_) => PhotoViewer(
+                        initialIndex: i,
+                        hint: 'Swipe sideways for more photos\n'
+                            'Pinch with two fingers to close',
+                      ),
+                    ),
+                  ),
+                  child: ZoomSource(
+                    tag: 'pinch \$i',
+                    child: Photo(index: i),
+                  ),
+                ),
+            ],
+          ),
+          const SectionHeader(
+            number: 17,
+            title: 'Fold',
+            source: 'Flipboard',
+            hint: 'Open the article: it arrives folded in half and opens '
+                'flat.',
+          ),
+          ArticleCard(
+            onTap: () => navigator.push(
+              FoldPageRoute<void>(builder: (_) => const ArticlePage()),
+            ),
+          ),
+          const SectionHeader(
+            number: 18,
+            title: 'Card stack',
+            source: 'Tinder, iOS Safari tab switcher',
+            hint: 'Open a profile, then throw the card towards the right '
+                'edge to send it away.',
+          ),
+          for (final profile in profiles)
+            ProfileTile(
+              profile: profile,
+              onTap: () => navigator.push(
+                CardStackRoute<void>(
+                  builder: (_) => ProfilePage(profile: profile),
+                ),
+              ),
+            ),
+          const SectionHeader(
+            number: 19,
+            title: 'Top sheet',
+            source: 'iOS Control Center, Android shade',
+            hint: 'Pull the sheet down, then push it back up from anywhere '
+                'to close it.',
+          ),
+          FilledButton.tonal(
+            onPressed: () => navigator.push(
+              TopSheetRoute<void>(builder: (_) => const ControlsPage()),
+            ),
+            child: const Text('Open Control Center'),
+          ),
+          const SectionHeader(
+            number: 20,
+            title: 'Drawer',
+            source: 'Messenger, Telegram',
+            hint: 'Open the menu, then drag it back towards the left edge, '
+                'or tap the dimmed page beside it.',
+          ),
+          FilledButton.tonal(
+            onPressed: () => navigator.push(
+              DrawerPageRoute<void>(
+                barrierLabel:
+                    MaterialLocalizations.of(context).modalBarrierDismissLabel,
+                builder: (_) => const MenuPage(),
+              ),
+            ),
+            child: const Text('Open menu'),
+          ),
+          const SectionHeader(
+            number: 21,
+            title: 'Wipe',
+            source: 'Four shapes, one route',
+            hint: 'Each tile uncovers the page with a different mask.',
+          ),
+          Row(
+            children: [
+              for (final style in WipeStyle.values) ...[
+                Expanded(
+                  child: EpisodeTile(
+                    style: style,
+                    onTap: () => navigator.push(
+                      WipePageRoute<void>(
+                        style: style,
+                        builder: (_) => EpisodePage(style: style),
+                      ),
+                    ),
+                  ),
+                ),
+                if (style != WipeStyle.values.last) const SizedBox(width: 8),
+              ],
+            ],
+          ),
+          const SectionHeader(
+            number: 22,
+            title: 'Glass reveal',
+            source: 'iOS 26 Liquid Glass',
+            hint: 'Tap the bar: the ripple opens from under your finger, '
+                'with a band of glass on its edge.',
+          ),
+          Material(
+            color: const Color(0xFF1E252D),
+            borderRadius: BorderRadius.circular(14),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => navigator.push(
+                GlassRevealRoute<void>(builder: (_) => const SearchPage()),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(Icons.search, color: Colors.white54),
+                    SizedBox(width: 12),
+                    Text('Search', style: TextStyle(color: Colors.white54)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SectionHeader(
+            number: 23,
+            title: 'Turnstile',
+            source: 'Windows Phone · Metro',
+            hint: 'Tap a tile: the pages pivot around their leading edge '
+                'like a revolving door.',
+          ),
+          Row(
+            children: [
+              for (final pivot in pivots) ...[
+                Expanded(
+                  child: PivotTile(
+                    pivot: pivot,
+                    onTap: () => navigator.push(
+                      TurnstileRoute<void>(
+                        builder: (_) => PivotPage(pivot: pivot),
+                      ),
+                    ),
+                  ),
+                ),
+                if (pivot != pivots.last) const SizedBox(width: 8),
+              ],
+            ],
+          ),
+          const SectionHeader(
+            number: 24,
+            title: 'Dynamic Island',
+            source: 'iOS',
+            hint: 'Tap the pill: it stretches out into the page. Pull the '
+                'page down to put it back.',
+          ),
+          IslandPill(
+            onTap: () => navigator.push(
+              IslandPageRoute<void>(builder: (_) => const TimerPage()),
+            ),
+          ),
+          const SectionHeader(
+            number: 25,
+            title: 'Wallet',
+            source: 'Apple Wallet',
+            hint: 'Tap a pass: it rises out of the stack while the stack '
+                'drops away.',
+          ),
+          for (final pass in passes)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: GestureDetector(
+                onTap: () => navigator.push(
+                  WalletPageRoute<void>(
+                    tag: pass,
+                    builder: (_) => PassPage(pass: pass),
+                  ),
+                ),
+                child: ZoomSource(
+                  tag: pass,
+                  borderRadius: 14,
+                  child: PassCard(pass: pass),
+                ),
+              ),
             ),
         ],
       ),

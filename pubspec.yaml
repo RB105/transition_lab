@@ -1,8 +1,9 @@
 name: transition_lab
 description: >-
-  Page transitions re-created from well-known apps: the Wolt swing, iOS zoom
-  and sheet, Instagram cube, photo drag to dismiss, page curl, doors, mini-player.
-version: 0.2.0
+  Page transitions re-created from well-known apps: the Wolt swing, iOS zoom,
+  sheet and glass ripple, Material 3's container transform, a Flipboard fold,
+  a mini-player.
+version: 0.3.0
 repository: https://github.com/RB105/transition_lab
 topics:
   - animation

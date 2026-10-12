@@ -78,6 +78,7 @@ class BackDragGesture extends StatefulWidget {
     this.edgeWidth,
     required this.travel,
     required this.popDistance,
+    this.reverse = false,
     required this.child,
   });
 
@@ -96,6 +97,10 @@ class BackDragGesture extends StatefulWidget {
   /// The share of the page width the finger has to move for a slow release
   /// to pop.
   final double popDistance;
+
+  /// Whether the drag runs towards the leading edge instead of the trailing
+  /// one, as it does for a panel that came in from the leading edge.
+  final bool reverse;
 
   final Widget child;
 
@@ -117,9 +122,13 @@ class _BackDragGestureState extends State<BackDragGesture> {
     widget.route.navigator!.didStartUserGesture();
   }
 
+  // +1 when the finger closes the route towards the trailing edge.
+  double get _sign => widget.reverse ? -1 : 1;
+
   void _onUpdate(DragUpdateDetails details) {
     if (_active) {
-      widget.controller.value -= trailingSign(context) *
+      widget.controller.value -= _sign *
+          trailingSign(context) *
           details.primaryDelta! /
           (context.size!.width * widget.travel);
     }
@@ -127,7 +136,8 @@ class _BackDragGestureState extends State<BackDragGesture> {
 
   void _onEnd(DragEndDetails details) {
     if (_active) {
-      _finish(trailingSign(context) *
+      _finish(_sign *
+          trailingSign(context) *
           details.velocity.pixelsPerSecond.dx /
           context.size!.width);
     }
@@ -336,4 +346,113 @@ class _LockablePhysics extends ScrollPhysics {
     double velocity,
   ) =>
       super.createBallisticSimulation(position, isLocked() ? 0 : velocity);
+}
+
+/// Reports two fingers pinching [child] together, and freezes scrolling
+/// inside it while they do.
+///
+/// Like [PullDetector] it listens to raw pointers instead of entering the
+/// gesture arena, so a single finger is left to the content: its scrollables,
+/// page views and buttons all keep working.
+class PinchDetector extends StatefulWidget {
+  const PinchDetector({
+    super.key,
+    required this.shouldStart,
+    this.onStart,
+    required this.onUpdate,
+    required this.onEnd,
+    required this.child,
+  });
+
+  /// Whether a second finger going down starts a pinch.
+  final ValueGetter<bool> shouldStart;
+
+  /// Called when a pinch starts, with the point between the two fingers.
+  final ValueChanged<Offset>? onStart;
+
+  /// Called as the fingers move, with how far apart they are relative to
+  /// where they started, and how far the point between them has moved.
+  final void Function(double scale, Offset moved) onUpdate;
+
+  /// Called when a finger lifts, with the scale the pinch ended at, or null
+  /// when the pointers were cancelled.
+  final ValueChanged<double?> onEnd;
+
+  final Widget child;
+
+  @override
+  State<PinchDetector> createState() => _PinchDetectorState();
+}
+
+class _PinchDetectorState extends State<PinchDetector> {
+  late ScrollBehavior _scrollBehavior;
+
+  final Map<int, Offset> _points = <int, Offset>{};
+  double _startSpread = 0;
+  Offset _startFocal = Offset.zero;
+  double _scale = 1;
+  bool _pinching = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final ScrollBehavior inherited = ScrollConfiguration.of(context);
+    _scrollBehavior = inherited.copyWith(
+      physics: _LockablePhysics(
+        isLocked: () => _pinching,
+        parent: inherited.getScrollPhysics(context),
+      ),
+    );
+  }
+
+  Offset get _focal =>
+      _points.values.reduce((a, b) => a + b) / _points.length.toDouble();
+
+  double get _spread {
+    final List<Offset> points = _points.values.toList();
+    return (points[0] - points[1]).distance;
+  }
+
+  void _onPointerDown(PointerDownEvent event) {
+    if (_points.length >= 2) return;
+    _points[event.pointer] = event.position;
+    if (_points.length == 2 && widget.shouldStart()) {
+      _startSpread = _spread;
+      _startFocal = _focal;
+      _scale = 1;
+      // Two fingers close together would make the scale jump around.
+      if (_startSpread < 40) return;
+      _pinching = true;
+      widget.onStart?.call(_startFocal);
+    }
+  }
+
+  void _onPointerMove(PointerMoveEvent event) {
+    if (!_points.containsKey(event.pointer)) return;
+    _points[event.pointer] = event.position;
+    if (!_pinching || _points.length < 2) return;
+    _scale = _spread / _startSpread;
+    widget.onUpdate(_scale, _focal - _startFocal);
+  }
+
+  void _onPointerUp(PointerEvent event) {
+    if (_points.remove(event.pointer) == null) return;
+    if (!_pinching) return;
+    _pinching = false;
+    widget.onEnd(event is PointerUpEvent ? _scale : null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScrollConfiguration(
+      behavior: _scrollBehavior,
+      child: Listener(
+        onPointerDown: _onPointerDown,
+        onPointerMove: _onPointerMove,
+        onPointerUp: _onPointerUp,
+        onPointerCancel: _onPointerUp,
+        child: widget.child,
+      ),
+    );
+  }
 }
